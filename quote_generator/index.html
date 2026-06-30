@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Quote Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+            padding: 50px;
+            max-width: 700px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #999;
+            font-size: 14px;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* ========================================
+           QUOTE CARD
+           ======================================== */
+        .quote-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quote-card::before {
+            content: '"';
+            position: absolute;
+            top: -30px;
+            left: 20px;
+            font-size: 100px;
+            opacity: 0.1;
+            font-family: Georgia;
+        }
+
+        .quote-text {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            font-family: 'Georgia', serif;
+        }
+
+        .quote-author {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.9);
+            font-style: italic;
+        }
+
+        .quote-author::before {
+            content: '— ';
+        }
+
+        /* ========================================
+           LOADING STATE
+           ======================================== */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            display: none;
+            width: 100%;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: white;
+            font-size: 14px;
+        }
+
+        /* ========================================
+           ACTION BUTTONS
+           ======================================== */
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            min-width: 130px;
+        }
+
+        .btn-secondary:hover {
+            background: #f8f8f8;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary.active {
+            background: #667eea;
+            color: white;
+        }
+
+        /* ========================================
+           CATEGORY TAGS
+           ======================================== */
+        .category-group {
+            margin-bottom: 25px;
+        }
+
+        .category-label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+
+        .category-tags {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .category-tag {
+            padding: 8px 16px;
+            background: #f0f0f0;
+            color: #333;
+            border: 2px solid #f0f0f0;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .category-tag:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .category-tag.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        /* ========================================
+           STATS
+           ======================================== */
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            padding: 20px 0;
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+            margin: 25px 0;
+            font-size: 13px;
+        }
+
+        .stat {
+            color: #999;
+        }
+
+        .stat-label {
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 11px;
+        }
+
+        /* ========================================
+           NOTIFICATION
+           ======================================== */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            animation: slideIn 0.3s ease-out;
+            z-index: 1000;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* ========================================
+           RESPONSIVE
+           ======================================== */
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .quote-card {
+                padding: 30px 20px;
+                min-height: 200px;
+            }
+
+            .quote-text {
+                font-size: 20px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .btn-primary,
+            .btn-secondary {
+                min-width: 100%;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .notification {
+                left: 20px;
+                right: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✨ Quote of the Day</h1>
+        <p class="subtitle">Get inspired with random quotes</p>
+
+        <!-- Quote Card -->
+        <div class="quote-card" id="quoteCard">
+            <div class="quote-content" id="quoteContent">
+                <div class="quote-text" id="quoteText">Loading...</div>
+                <div class="quote-author" id="quoteAuthor">Author</div>
+            </div>
+            <div class="loading" id="loadingState">
+                <div class="spinner"></div>
+                <div class="loading-text">Finding inspiration...</div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-label">Total Quotes</div>
+                <div id="totalQuotes">500+</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Quotes Viewed</div>
+                <div id="quotesViewed">0</div>
+            </div>
+        </div>
+
+        <!-- Category Filter -->
+        <div class="category-group">
+            <div class="category-label">Filter by Category</div>
+            <div class="category-tags">
+                <button class="category-tag active" onclick="filterCategory('all')">All</button>
+                <button class="category-tag" onclick="filterCategory('inspirational')">Inspirational</button>
+                <button class="category-tag" onclick="filterCategory('motivational')">Motivational</button>
+                <button class="category-tag" onclick="filterCategory('wisdom')">Wisdom</button>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="button-group">
+            <button class="btn btn-primary" onclick="getNewQuote()">
+                🔄 Get New Quote
+            </button>
+            <button class="btn btn-secondary" onclick="copyToClipboard()">
+                📋 Copy
+            </button>
+            <button class="btn btn-secondary" onclick="shareQuote()">
+                📤 Share
+            </button>
+        </div>
+
+        <p style="color: #999; font-size: 12px; margin-top: 20px;">
+            💡 Tip: Use keyboard shortcut <strong>SPACE</strong> to get a new quote
+        </p>
+    </div>
+
+    <script>
+        // ========================================
+        // RANDOM QUOTE GENERATOR - API INTEGRATION
+        // ========================================
+
+        let currentQuote = {
+            text: 'Loading...',
+            author: 'Author'
+        };
+
+        let quotesViewed = 0;
+        let selectedCategory = 'all';
+
+        // ========================================
+        // 1. FETCH QUOTE FROM API
+        // ========================================
+        async function getNewQuote() {
+            const loadingState = document.getElementById('loadingState');
+            const quoteContent = document.getElementById('quoteContent');
+
+            // Show loading state
+            loadingState.style.display = 'block';
+            quoteContent.style.opacity = '0.3';
+
+            try {
+                // Build API URL based on selected category
+                let apiUrl = 'https://api.quotable.io/random';
+                if (selectedCategory !== 'all') {
+                    apiUrl += `?tags=${selectedCategory}`;
+                }
+
+                // Fetch quote from Quotable API (free, no authentication needed)
+                const response = await fetch(apiUrl);
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch quote');
+                }
+
+                // Parse JSON response
+                const data = await response.json();
+
+                // Store current quote
+                currentQuote = {
+                    text: data.content,
+                    author: data.author.replace(', type.fit', '') // Clean author name
+                };
+
+                // Update counter
+                quotesViewed++;
+                updateStats();
+
+                // Display quote with smooth animation
+                displayQuote();
+
+            } catch (error) {
+                console.error('Error fetching quote:', error);
+                showNotification('Failed to load quote. Try again!', 'error');
+                currentQuote = {
+                    text: 'Error loading quote. Please try again.',
+                    author: 'System'
+                };
+                displayQuote();
+
+            } finally {
+                // Hide loading state
+                loadingState.style.display = 'none';
+                quoteContent.style.opacity = '1';
+            }
+        }
+
+        // ========================================
+        // 2. DISPLAY QUOTE
+        // ========================================
+        function displayQuote() {
+            document.getElementById('quoteText').textContent = currentQuote.text;
+            document.getElementById('quoteAuthor').textContent = currentQuote.author;
+        }
+
+        // ========================================
+        // 3. COPY TO CLIPBOARD
+        // ========================================
+        function copyToClipboard() {
+            const textToCopy = `"${currentQuote.text}" — ${currentQuote.author}`;
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                showNotification('Quote copied to clipboard! 📋', 'success');
+            }).catch(err => {
+                showNotification('Failed to copy', 'error');
+            });
+        }
+
+        // ========================================
+        // 4. SHARE QUOTE
+        // ========================================
+        function shareQuote() {
+            const textToShare = `"${currentQuote.text}" — ${currentQuote.author}`;
+
+            if (navigator.share) {
+                // Modern share API (mobile)
+                navigator.share({
+                    title: 'Quote of the Day',
+                    text: textToShare
+                }).catch(err => console.log('Share error:', err));
+            } else {
+                // Fallback: copy and notify
+                navigator.clipboard.writeText(textToShare);
+                showNotification('Quote copied! Share it anywhere 📤', 'success');
+            }
+        }
+
+        // ========================================
+        // 5. FILTER BY CATEGORY
+        // ========================================
+        function filterCategory(category) {
+            selectedCategory = category;
+
+            // Update active button
+            document.querySelectorAll('.category-tag').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Get new quote with selected category
+            getNewQuote();
+        }
+
+        // ========================================
+        // 6. UPDATE STATS
+        // ========================================
+        function updateStats() {
+            document.getElementById('quotesViewed').textContent = quotesViewed;
+        }
+
+        // ========================================
+        // 7. SHOW NOTIFICATION
+        // ========================================
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            notification.style.background = type === 'success' ? '#4caf50' : '#f44336';
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // ========================================
+        // 8. KEYBOARD SHORTCUTS
+        // ========================================
+        document.addEventListener('keydown', function(e) {
+            // SPACE key to get new quote
+            if (e.code === 'Space') {
+                e.preventDefault();
+                getNewQuote();
+            }
+
+            // C key to copy
+            if (e.code === 'KeyC' && e.ctrlKey) {
+                e.preventDefault();
+                copyToClipboard();
+            }
+        });
+
+        // ========================================
+        // INITIAL LOAD
+        // ========================================
+        window.addEventListener('load', function() {
+            getNewQuote();
+        });
+    </script>
+</body>
+</html>

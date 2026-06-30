@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 500px;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 28px;
+        }
+
+        .input-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 25px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+        }
+
+        .tasks-list {
+            list-style: none;
+        }
+
+        .task-item {
+            background: #f9f9f9;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-left: 5px solid #667eea;
+            transition: transform 0.2s;
+        }
+
+        .task-item:hover {
+            transform: translateX(5px);
+        }
+
+        .task-item.completed {
+            opacity: 0.6;
+            border-left-color: #4caf50;
+        }
+
+        .task-item.completed .task-text {
+            text-decoration: line-through;
+            color: #999;
+        }
+
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .task-text {
+            flex: 1;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .delete-btn {
+            background: #ff6b6b;
+            padding: 8px 15px;
+            font-size: 14px;
+            border-radius: 5px;
+        }
+
+        .delete-btn:hover {
+            background: #ff5252;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+            font-size: 16px;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .filter-btn {
+            padding: 8px 15px;
+            background: #f0f0f0;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✅ My Tasks</h1>
+
+        <!-- Input Section -->
+        <div class="input-box">
+            <input 
+                type="text" 
+                id="taskInput" 
+                placeholder="Add a new task..." 
+                autocomplete="off"
+            >
+            <button onclick="addTask()">Add</button>
+        </div>
+
+        <!-- Filter Buttons -->
+        <div class="filter-buttons">
+            <button class="filter-btn active" onclick="filterTasks('all')">All</button>
+            <button class="filter-btn" onclick="filterTasks('active')">Active</button>
+            <button class="filter-btn" onclick="filterTasks('completed')">Done</button>
+        </div>
+
+        <!-- Tasks List -->
+        <ul class="tasks-list" id="tasksList"></ul>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="emptyState">
+            No tasks yet. Add one to get started! 🚀
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // TO-DO LIST APP - JavaScript Logic
+        // ========================================
+
+        // Initialize tasks from localStorage (so tasks persist on page reload)
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        let currentFilter = 'all'; // Track which filter is active
+
+        // ========================================
+        // 1. RENDER: Display tasks on the page
+        // ========================================
+        function renderTasks() {
+            const tasksList = document.getElementById('tasksList');
+            const emptyState = document.getElementById('emptyState');
+
+            // Filter tasks based on current filter
+            const filteredTasks = tasks.filter(task => {
+                if (currentFilter === 'active') return !task.completed;
+                if (currentFilter === 'completed') return task.completed;
+                return true; // 'all'
+            });
+
+            // Clear the list
+            tasksList.innerHTML = '';
+
+            // Show empty state if no tasks
+            if (filteredTasks.length === 0) {
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+
+            // Render each task as a list item
+            filteredTasks.forEach((task, index) => {
+                const li = document.createElement('li');
+                li.className = `task-item ${task.completed ? 'completed' : ''}`;
+
+                li.innerHTML = `
+                    <input 
+                        type="checkbox" 
+                        ${task.completed ? 'checked' : ''} 
+                        onchange="toggleTask(${index})"
+                    >
+                    <span class="task-text">${escapeHtml(task.text)}</span>
+                    <button class="delete-btn" onclick="deleteTask(${index})">
+                        Delete
+                    </button>
+                `;
+
+                tasksList.appendChild(li);
+            });
+        }
+
+        // ========================================
+        // 2. CREATE: Add a new task
+        // ========================================
+        function addTask() {
+            const input = document.getElementById('taskInput');
+            const text = input.value.trim();
+
+            // Validation: don't add empty tasks
+            if (!text) {
+                alert('Please enter a task');
+                return;
+            }
+
+            // Create new task object
+            const newTask = {
+                id: Date.now(), // unique ID using timestamp
+                text: text,
+                completed: false,
+                createdAt: new Date().toLocaleString()
+            };
+
+            // Add to array and save to localStorage
+            tasks.push(newTask);
+            saveTasks();
+
+            // Clear input and re-render
+            input.value = '';
+            renderTasks();
+        }
+
+        // ========================================
+        // 3. UPDATE: Toggle task completion
+        // ========================================
+        function toggleTask(index) {
+            // Get the actual task (accounting for filter)
+            const filteredTasks = getFilteredTasks();
+            const taskToToggle = filteredTasks[index];
+
+            // Find and update in main tasks array
+            const mainIndex = tasks.findIndex(t => t.id === taskToToggle.id);
+            if (mainIndex !== -1) {
+                tasks[mainIndex].completed = !tasks[mainIndex].completed;
+                saveTasks();
+                renderTasks();
+            }
+        }
+
+        // ========================================
+        // 4. DELETE: Remove a task
+        // ========================================
+        function deleteTask(index) {
+            if (confirm('Delete this task?')) {
+                const filteredTasks = getFilteredTasks();
+                const taskToDelete = filteredTasks[index];
+
+                // Remove from main array
+                tasks = tasks.filter(t => t.id !== taskToDelete.id);
+                saveTasks();
+                renderTasks();
+            }
+        }
+
+        // ========================================
+        // 5. FILTER: Show All / Active / Completed
+        // ========================================
+        function filterTasks(filter) {
+            currentFilter = filter;
+
+            // Update active button styling
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Re-render with the new filter
+            renderTasks();
+        }
+
+        // ========================================
+        // HELPER FUNCTIONS
+        // ========================================
+
+        // Get tasks based on current filter (used for delete/toggle)
+        function getFilteredTasks() {
+            return tasks.filter(task => {
+                if (currentFilter === 'active') return !task.completed;
+                if (currentFilter === 'completed') return task.completed;
+                return true;
+            });
+        }
+
+        // Save tasks to localStorage for persistence
+        function saveTasks() {
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+
+        // Escape HTML to prevent XSS (security best practice)
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ========================================
+        // Allow Enter key to add task
+        // ========================================
+        document.getElementById('taskInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') addTask();
+        });
+
+        // ========================================
+        // Initial render on page load
+        // ========================================
+        renderTasks();
+    </script>
+</body>
+</html>

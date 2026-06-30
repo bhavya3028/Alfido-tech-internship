@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Netflix Clone</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #141414;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* ========================================
+           NAVBAR
+           ======================================== */
+        .navbar {
+            background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+            padding: 20px 50px;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #e50914;
+            letter-spacing: 2px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 14px;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #b3b3b3;
+        }
+
+        /* ========================================
+           HERO SECTION
+           ======================================== */
+        .hero {
+            height: 100vh;
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), 
+                        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><rect fill="%23222" width="1200" height="600"/><text x="50%" y="50%" font-size="60" fill="%23e50914" text-anchor="middle" dominant-baseline="middle">🎬 FEATURED CONTENT</text></svg>');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            padding: 0 50px;
+            margin-top: 70px;
+        }
+
+        .hero-content h1 {
+            font-size: 60px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
+        }
+
+        .hero-content p {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            max-width: 500px;
+            color: #e0e0e0;
+            text-shadow: 1px 1px 4px rgba(0,0,0,0.8);
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-play {
+            background: white;
+            color: #000;
+        }
+
+        .btn-play:hover {
+            background: rgba(255, 255, 255, 0.7);
+            transform: scale(1.05);
+        }
+
+        .btn-info {
+            background: rgba(109, 109, 110, 0.7);
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: rgba(109, 109, 110, 0.4);
+        }
+
+        /* ========================================
+           CAROUSEL/SLIDER
+           ======================================== */
+        .carousel-section {
+            margin-top: 50px;
+            padding: 0 50px 50px;
+        }
+
+        .carousel-section h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .carousel {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            padding-bottom: 20px;
+        }
+
+        .carousel::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .carousel::-webkit-scrollbar-track {
+            background: #333;
+        }
+
+        .carousel::-webkit-scrollbar-thumb {
+            background: #666;
+            border-radius: 4px;
+        }
+
+        .carousel::-webkit-scrollbar-thumb:hover {
+            background: #888;
+        }
+
+        .movie-card {
+            flex: 0 0 200px;
+            height: 300px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .movie-card:hover {
+            transform: scale(1.05);
+            z-index: 100;
+        }
+
+        .movie-card-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            opacity: 0;
+            display: flex;
+            align-items: flex-end;
+            padding: 20px;
+            transition: opacity 0.3s;
+        }
+
+        .movie-card:hover .movie-card-overlay {
+            opacity: 1;
+        }
+
+        .movie-card-info {
+            color: white;
+            font-size: 14px;
+        }
+
+        /* ========================================
+           FOOTER
+           ======================================== */
+        footer {
+            background: #000;
+            padding: 50px;
+            margin-top: 50px;
+            border-top: 1px solid #333;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-links {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links h4 {
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .footer-links a {
+            color: #808080;
+            text-decoration: none;
+            font-size: 13px;
+            display: block;
+            margin-bottom: 8px;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: #fff;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #333;
+            padding-top: 20px;
+            text-align: center;
+            color: #808080;
+            font-size: 12px;
+        }
+
+        /* ========================================
+           RESPONSIVE
+           ======================================== */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 15px 20px;
+            }
+
+            .hero {
+                padding: 0 20px;
+                margin-top: 60px;
+            }
+
+            .hero-content h1 {
+                font-size: 40px;
+            }
+
+            .carousel-section {
+                padding: 0 20px 50px;
+            }
+
+            .movie-card {
+                flex: 0 0 150px;
+                height: 225px;
+            }
+
+            .footer-links {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ========================================
+         NAVBAR
+         ======================================== -->
+    <nav class="navbar">
+        <div class="logo">🎬 NETFLIX</div>
+        <ul class="nav-links">
+            <li><a onclick="scrollToSection('trending')">Trending</a></li>
+            <li><a onclick="scrollToSection('popular')">Popular</a></li>
+            <li><a onclick="scrollToSection('upcoming')">Upcoming</a></li>
+            <li><a>My List</a></li>
+        </ul>
+    </nav>
+
+    <!-- ========================================
+         HERO SECTION
+         ======================================== -->
+    <div class="hero">
+        <div class="hero-content">
+            <h1>Stranger Things</h1>
+            <p>When a young boy vanishes, his friends, family and local police go searching for answers in this mind-bending drama series.</p>
+            <div class="hero-buttons">
+                <button class="btn btn-play">▶ Play</button>
+                <button class="btn btn-info">ℹ More Info</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================
+         TRENDING CAROUSEL
+         ======================================== -->
+    <div class="carousel-section" id="trending">
+        <h2>🔥 Trending Now</h2>
+        <div class="carousel">
+            <div class="movie-card">
+                <div class="movie-card-overlay">
+                    <div class="movie-card-info">Stranger Things</div>
+                </div>
+                Stranger Things
+            </div>
+            <div class="movie-card">
+                <div class="movie-card-overlay">
+                    <div class="movie-card-info">The Crown</div>
+                </div>
+                The Crown
+            </div>
+            <div class="movie-card">
+                <div class="movie-card-overlay">
+                    <div class="movie-card-info">Bridgerton</div>
+                </div>
+                Bridgerton
+            </div>
+            <div class="movie-card">
+                <div class="movie-card-overlay">
+                    <div class="movie-card-info">Money Heist</div>
+                </div>
+                Money Heist
+            </div>
+            <div class="movie-card">
+                <div class="movie-card-overlay">
+                    <div class="movie-card-info">The Witcher</div>
+                </div>
+                The Witcher
+            </div>
+            <div class="movie-card">
+                <div class="movie-card-overlay">
+                    <div class="movie-card-info">Dark</div>
+                </div>
+                Dark
+            </div>
+            <div class="movie-card">
+                <div class="movie-card-overlay">
+                    <div class="movie-card-info">Ozark</div>
+                </div>
+                Ozark
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================
+         POPULAR CAROUSEL
+         ======================================== -->
+    <div class="carousel-section" id="popular">
+        <h2>⭐ Popular on Netflix</h2>
+        <div class="carousel">
+            <div class="movie-card">
+                <div class="movie-card-overlay">
+                    <div class="movie-card-info">13 Reasons Why</div>
+                </div>
+                13 Reasons Why
+            </div>
+            <div class="movie-card">
+                <div class="movie-card-overlay">
+                    <div class="movie-card-info">Narcos</div>
+                </div>
+                Narcos
+            </div>
+            <div class="movie-card">
+                <div class="movie-card-overlay">
+                    <div class="movie-card-info">Breaking Bad</div>
+                </div>
+                Breaking Bad
+            </div>
+            <div class="movie-card">
+                <div class="movie-card-overlay">
+                    <div class="movie-card-info">The Office</div>
+                </div>
+                The Office
+            </div>
+            <div class="movie-card">
+                <div class="movie-card-overlay">
+                    <div class="movie-card-info">Mindhunter</div>
+                </div>
+                Mindhunter
+            </div>
+            <div class="movie-card">
+                <div class="movie-card-overlay">
+                    <div class="movie-card-info">Friends</div>
+                </div>
+                Friends
+            </div>
+            <div class="movie-card">
+                <div class="movie-card-overlay">
+                    <div class="movie-card-info">Chernobyl</div>
+                </div>
+                Chernobyl
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================
+         UPCOMING CAROUSEL
+         ======================================== -->
+    <div class="carousel-section" id="upcoming">
+        <h2>🎬 Coming Soon</h2>
+        <div class="carousel">
+            <div class="movie-card">
+                <div class="movie-card-overlay">
+                    <div class="movie-card-info">New Season</div>
+                </div>
+                Season 5
+            </div>
+            <div class="movie-card">
+                <div class="movie-card-overlay">
+                    <div class="movie-card-info">Original Series</div>
+                </div>
+                New Series
+            </div>
+            <div class="movie-card">
+                <div class="movie-card-overlay">
+                    <div class="movie-card-info">Limited Series</div>
+                </div>
+                Miniseries
+            </div>
+            <div class="movie-card">
+                <div class="movie-card-overlay">
+                    <div class="movie-card-info">Documentary</div>
+                </div>
+                Documentary
+            </div>
+            <div class="movie-card">
+                <div class="movie-card-overlay">
+                    <div class="movie-card-info">Stand-up Comedy</div>
+                </div>
+                Comedy
+            </div>
+            <div class="movie-card">
+                <div class="movie-card-overlay">
+                    <div class="movie-card-info">Interactive Film</div>
+                </div>
+                Interactive
+            </div>
+            <div class="movie-card">
+                <div class="movie-card-overlay">
+                    <div class="movie-card-info">Thriller</div>
+                </div>
+                Thriller
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================
+         FOOTER
+         ======================================== -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-links">
+                <div>
+                    <h4>COMPANY</h4>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Jobs</a></li>
+                        <li><a href="#">Press</a></li>
+                        <li><a href="#">Blog</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>HELP</h4>
+                    <ul>
+                        <li><a href="#">Account</a></li>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">Cookies</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>LEGAL</h4>
+                    <ul>
+                        <li><a href="#">Terms of Use</a></li>
+                        <li><a href="#">Privacy</a></li>
+                        <li><a href="#">Cookie Preferences</a></li>
+                        <li><a href="#">Corporate</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>SOCIAL</h4>
+                    <ul>
+                        <li><a href="#">Facebook</a></li>
+                        <li><a href="#">Twitter</a></li>
+                        <li><a href="#">Instagram</a></li>
+                        <li><a href="#">LinkedIn</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Netflix Clone. This is a UI clone for educational purposes only.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // ========================================
+        // SMOOTH SCROLL TO SECTIONS
+        // ========================================
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        // ========================================
+        // Navbar background on scroll
+        // ========================================
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.style.background = 'rgba(0, 0, 0, 0.9)';
+            } else {
+                navbar.style.background = 'linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)';
+            }
+        });
+    </script>
+</body>
+</html>
